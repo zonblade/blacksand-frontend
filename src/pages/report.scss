@@ -1,0 +1,69 @@
+.container {
+    flex-direction: column;
+
+    .header {
+        flex: 1;
+        max-height: 140px;
+    }
+
+    .forms {
+        flex: 1;
+        padding: 0px;
+        padding-top: 0px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .inputTitle {
+            width: 100%;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: 100%;
+            line-height: 1.3rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            height: 28px;
+
+            option {
+                line-height: 1.3rem;
+            }
+        }
+
+        .tox-tinymce {
+            border-radius: 0px !important;
+        }
+        .selectGroup {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            
+            .subSelectWide{
+                flex:1
+            }
+
+            .subSelectLeft {
+                flex:1;
+            }
+            .subSelectRight {
+                flex:1;
+                max-width: 100px;
+            }
+            .subRemoveBtn {
+                flex:1;
+                max-width: 32px;
+            }
+        }
+    }
+    .save-button {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+    }
+}
