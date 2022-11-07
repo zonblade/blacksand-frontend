@@ -89,20 +89,26 @@ class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
             return;
         }
         GetInitialData(tokenAuth).then((result: any) => {
-            const redir = result.today
-            if(redir===false){
-                setTimeout(()=>{
+            try{
+                const redir = result.today
+                if(redir===false){
+                    setTimeout(()=>{
+                        this.setState({ 
+                            ...this.state,
+                            loadData:false,
+                            server: { todo: result.todo }
+                        })
+                    },2000)
+                }else{
                     this.setState({ 
                         ...this.state,
-                        loadData:false,
-                        server: { todo: result.todo }
+                        reportDone:true
                     })
-                },2000)
-            }else{
+                }
+            }catch{
                 this.setState({ 
                     ...this.state,
-                    reportDone:true,
-                    server: { todo: result.todo }
+                    reportDone:true
                 })
             }
         })
