@@ -6,6 +6,8 @@ import { SET_USER_INFO } from '../redux/constant'
 import { M_LocalData } from '../redux/models'
 import { T_LocalData_W_DP } from '../redux/reducer'
 import { HashLoader } from 'react-spinners'
+import withReactContent from 'sweetalert2-react-content'
+import Swal from 'sweetalert2'
 import './dashboard.scss'
 
 
@@ -14,6 +16,7 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
     constructor(props: T_LocalData_W_DP) {
         super(props)
         this.state = {
+            swal: withReactContent(Swal),
             username: this.props.local.username,
             isAlready: false,
             moveToReport: false,
@@ -73,7 +76,11 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
             <>
                 {this.state.reports.map((item: any, index: number) => {
                     return (
-                        <div className='laporan' key={index}>
+                        <div className='laporan' key={index} style={{cursor:'pointer'}} onClick={()=>{
+                            this.state.swal.fire({
+                                html:item.content
+                            })
+                        }} >
                             <div className='laporan-header'>
                                 {item.type}
                             </div>
