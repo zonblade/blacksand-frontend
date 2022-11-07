@@ -5,6 +5,7 @@ import { API_AUTH_PWD, API_REPORT_DATA } from '../helper/constant'
 import { SET_USER_INFO } from '../redux/constant'
 import { M_LocalData } from '../redux/models'
 import { T_LocalData_W_DP } from '../redux/reducer'
+import { HashLoader } from 'react-spinners'
 import './dashboard.scss'
 
 
@@ -21,8 +22,11 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
             todoPostponed: [],
             password: null,
             passwordBtn: 'Ganti',
-            saving:{
-                password:false
+            saving: {
+                password: false
+            },
+            loading: {
+                content: true
             }
         }
         this.ReportList = this.ReportList.bind(this)
@@ -47,13 +51,18 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
             return;
         }
         GetInitialData(tokenAuth).then((result: any) => {
-            console.log(result)
             this.setState({
                 ...this.state,
                 reports: result.report,
                 todoPending: result.todo.pending,
                 todoPostponed: result.todo.postponed
             })
+            setTimeout(() => {
+                this.setState({
+                    ...this.state,
+                    loading: { content: false }
+                })
+            }, 2500)
         }).catch((err: any) => {
             console.log(err)
         })
@@ -147,9 +156,9 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
         if (this.state.password === null) { return; }
         if (this.state.password === '') { return; }
         this.setState({
-            saving:{
+            saving: {
                 ...this.state.saving,
-                password:true
+                password: true
             }
         })
         async function ChangePassword(authToken: string | null, password: string) {
@@ -175,19 +184,19 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
             })
             this.setState({
                 ...this.state,
-                password:'',
-                saving:{
+                password: '',
+                saving: {
                     ...this.state.saving,
-                    password:false
+                    password: false
                 }
             })
         }).catch((err: any) => {
             this.setState({
                 ...this.state,
-                password:'',
-                saving:{
+                password: '',
+                saving: {
                     ...this.state.saving,
-                    password:false
+                    password: false
                 }
             })
         })
@@ -204,35 +213,44 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
         }, 500)
     }
 
+    LoadingComp = () => {
+        return (
+            <div className='dash-loads'>
+                <HashLoader color='rgba(0,0,0,0.2)' />
+            </div>
+        )
+    }
+
     render(): JSX.Element {
         return (
-            <div className='container'>
+            <div className='container-dash'>
                 <div className='dash-header'>
-                    <span>
-                        hallo <strong>{this.state.username}</strong> bagaimana laporanmu hari ini?
+                    <span className='dash-header-title'>
+                        hallo <strong>{this.state.username}</strong>!
                     </span>
-                </div>
-                <div className='dash-tombol'>
-                    <span className='btn'>
-                        <span className='bta' onClick={() => {
-                            this.setState({ ...this.state, moveToReport: true })
-                        }}>
-                            {this.state.moveToReport && (<Navigate to="/report" replace />)}
-                            Tambah Laporan
+                    <div className='dash-header-button'>
+                        <span className='btn'>
+                            <span className='bta' onClick={() => {
+                                this.setState({ ...this.state, moveToReport: true })
+                            }}>
+                                {this.state.moveToReport && (<Navigate to="/report" replace />)}
+                                Laporan Hari Ini
+                            </span>
                         </span>
-                    </span>
-                    <span className='btn'>
-                        <span className='bta' onClick={() => this.Logout()}>
-                            Logout
+                        <span className='btn'>
+                            <span className='bta' onClick={() => this.Logout()}>
+                                Logout
+                            </span>
                         </span>
-                    </span>
+                    </div>
                 </div>
                 <div className='dash-password'>
                     <span>Ganti Password</span>
-                    <input 
-                        type="password" 
+                    <input
+                        type="password"
+                        placeholder='♳ password baru'
                         value={this.state.password}
-                        disabled={this.state.saving.password?true:false}
+                        disabled={this.state.saving.password ? true : false}
                         onChange={(val) => {
                             this.setState({
                                 ...this.state,
@@ -245,7 +263,7 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
                             <span className='bta'>
                                 Menyimpan...
                             </span>
-                        </span>:
+                        </span> :
                         <span className='btn'>
                             <span className='bta' onClick={() => this.ChangePass()}>
                                 {this.state.passwordBtn}
@@ -253,20 +271,28 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
                         </span>
                     }
                 </div>
-                <div className='dash-todo'>
-                    <h4>Todo : Pending</h4>
-                    <div className='dash-todo-loop'>
-                        <this.TodoPendingList />
-                    </div>
-                    <h4>Todo : Postponed</h4>
-                    <div className='dash-todo-loop'>
-                        <this.TodoPostponedList />
-                    </div>
-                </div>
-                <div className='dash-laporan'>
-                    <h4>laporan 30 hari terakhir</h4>
-                    <this.ReportList />
-                </div>
+                {this.state.loading.content ?
+                    <>
+                        <this.LoadingComp />
+                        <this.LoadingComp />
+                    </> :
+                    <>
+                        <div className='dash-todo'>
+                            <h4>Todo : Pending</h4>
+                            <div className='dash-todo-loop'>
+                                <this.TodoPendingList />
+                            </div>
+                            <h4>Todo : Postponed</h4>
+                            <div className='dash-todo-loop'>
+                                <this.TodoPostponedList />
+                            </div>
+                        </div>
+                        <div className='dash-laporan'>
+                            <h4>laporan 30 hari terakhir</h4>
+                            <this.ReportList />
+                        </div>
+                    </>
+                }
             </div>
 
         )

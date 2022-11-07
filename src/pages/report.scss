@@ -1,9 +1,15 @@
-.container {
+.container-report {
     flex-direction: column;
+    max-width: 500px;
+    min-height: calc(100vh - 70px);
 
     .header {
         flex: 1;
         max-height: 140px;
+    }
+
+    input {
+        border-bottom: 1px solid rgba(0,0,0,0.2);
     }
 
     .forms {

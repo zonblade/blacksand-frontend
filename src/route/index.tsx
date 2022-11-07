@@ -30,7 +30,6 @@ class Main extends React.Component<T_LocalData_W_DP, any> {
 
     rootForceRefresh = () => {
         const token = this.props.local.token;
-        console.log("token:" + token)
         if (token !== null) {
             this.setState({ isLogin: true })
         } else {

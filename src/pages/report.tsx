@@ -17,6 +17,9 @@ import type { T_BranchList, I_BranchData } from '../types/report.data'
 import { T_LocalData_W_DP } from '../redux/reducer'
 import { API_REPORT_SAVE, API_TODO_REPORT } from '../helper/constant'
 import { Navigate } from 'react-router-dom'
+import { HashLoader } from 'react-spinners'
+import withReactContent from 'sweetalert2-react-content'
+import Swal from 'sweetalert2'
 
 
 class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
@@ -24,7 +27,10 @@ class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
     constructor(prop: T_LocalData_W_DP) {
         super(prop)
         this.state = {
+            swal : withReactContent(Swal),
             toDashboard: false,
+            reportDone: false,
+            loadData: true,
             failsave: {
                 saving: false,
                 type: null,
@@ -63,6 +69,8 @@ class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
         this.BranchLastTodoSetList = this.BranchLastTodoSetList.bind(this)
         this.BranchLastTodoRemove = this.BranchLastTodoRemove.bind(this)
         this.LastTodoChanged = this.LastTodoChanged.bind(this)
+        this.DailyDisplay = this.DailyDisplay.bind(this)
+        this.DailyLoading = this.DailyLoading.bind(this)
     }
 
     componentDidMount(): void {
@@ -81,16 +89,102 @@ class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
             return;
         }
         GetInitialData(tokenAuth).then((result: any) => {
-            this.setState({ server: { todo: result } })
+            const redir = result.today
+            if(redir===false){
+                setTimeout(()=>{
+                    this.setState({ 
+                        ...this.state,
+                        loadData:false,
+                        server: { todo: result.todo }
+                    })
+                },2000)
+            }else{
+                this.setState({ 
+                    ...this.state,
+                    reportDone:true,
+                    server: { todo: result.todo }
+                })
+            }
         })
     }
 
     SaveReport = () => {
         const reportTitle = this.state.onsave.title;
+        if(reportTitle.length<10){
+            this.state.swal.fire({
+                title: <p style={{fontSize:'0.8rem'}}>Judul wajib diisi!</p>,
+                icon: 'warning',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then(()=>{
+                this.setState({
+                    ...this.state,
+                    failsave: {
+                        ...this.state.failsave,
+                        saving: false
+                    }
+                })
+            })
+            
+            return;
+        }
         const reportType = this.state.onsave.type;
+        if(reportType.length<5){
+            this.state.swal.fire({
+                title: <p style={{fontSize:'0.8rem'}}>Tipe wajib diisi!</p>,
+                icon: 'warning',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then(()=>{
+                this.setState({
+                    ...this.state,
+                    failsave: {
+                        ...this.state.failsave,
+                        saving: false
+                    }
+                })
+            })
+            return;
+        }
         const reportContent = this.editorRef.current.getContent()
+        if(reportContent.length<150){
+            this.state.swal.fire({
+                title: <p style={{fontSize:'0.8rem'}}>Isi laporan setidaknya 150 huruf!</p>,
+                icon: 'warning',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then(()=>{
+                this.setState({
+                    ...this.state,
+                    failsave: {
+                        ...this.state.failsave,
+                        saving: false
+                    }
+                })
+            })
+            
+            return;
+        }
         const reportNewTodo = this.state.onsave.branch;
         const reportOldTodo = this.state.onsave.lastTodo;
+        if(reportNewTodo.length===0){
+            this.state.swal.fire({
+                title: <p style={{fontSize:'0.8rem'}}>Isi Setidaknya 1 Todo!</p>,
+                icon: 'warning',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then(()=>{
+                this.setState({
+                    ...this.state,
+                    failsave: {
+                        ...this.state.failsave,
+                        saving: false
+                    }
+                })
+            })
+            return;
+        }
+
         async function SaveReport(
             authToken: string | null,
             title: string,
@@ -120,29 +214,59 @@ class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
         if (tokenAuth === null) {
             this.props.renderCallback()
         }
-        SaveReport(
-            tokenAuth,
-            reportTitle,
-            reportType,
-            reportContent,
-            reportNewTodo,
-            reportOldTodo
-        ).then((result: any) => {
-            if (result.success) {
+
+        this.state.swal.fire({
+            title: <p className='Swal-Text-Small'>Yakin?</p>,
+            text: 'Jika sudah disimpan tidak dapat diedit! pastikan data yang dimasukan benar!',
+            icon: 'info',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            confirmButtonText: 'Simpan',
+            denyButtonText: 'Batal & Edit',
+            showDenyButton: true
+        }).then((s:any)=>{
+            if(s.isConfirmed){
+                this.setState({ 
+                    ...this.state,
+                    loadData:true
+                })
+                SaveReport(
+                    tokenAuth,
+                    reportTitle,
+                    reportType,
+                    reportContent,
+                    reportNewTodo,
+                    reportOldTodo
+                ).then((result: any) => {
+                    if (result.success) {
+                        this.setState({
+                            ...this.state,
+                            reportDone:true,
+                            failsave: {
+                                ...this.state.failsave,
+                                saving: false
+                            }
+                        })
+                    }
+                }).catch(() => {
+                    this.setState({
+                        ...this.state,
+                        reportDone:true,
+                        failsave: {
+                            ...this.state.failsave,
+                            saving: false
+                        }
+                    })
+                })
+            }else{
                 this.setState({
+                    ...this.state,
                     failsave: {
                         ...this.state.failsave,
                         saving: false
                     }
                 })
             }
-        }).catch(() => {
-            this.setState({
-                failsave: {
-                    ...this.state.failsave,
-                    saving: false
-                }
-            })
         })
     }
 
@@ -293,10 +417,22 @@ class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
         )
     }
 
-    render(): JSX.Element {
-        // Add the initial value.
+    DailyLoading = () => {
         return (
-            <div className='container'>
+            <div className='container-login'>
+                {this.state.reportDone && (<Navigate to="/" replace />)}
+                <div className='inner-container' style={{border:0}}>
+                    <HashLoader
+                        color='rgba(0,0,0,0.2)'
+                    />
+                </div>
+            </div>
+        )
+    }
+
+    DailyDisplay = () => {
+        return (
+            <div className='container-report'>
                 {this.state.reportDone && (<Navigate to="/" replace />)}
                 <div className='header'>
                     <h1>Daily Report</h1>
@@ -367,9 +503,9 @@ class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
                             <span
                                 className='bta'
                                 onClick={() => {
-                                    this.setState({...this.state,toDashboard:true})
+                                    this.setState({ ...this.state, toDashboard: true })
                                 }}>
-                                {this.state.toDashboard && (<Navigate to="/" replace/>)}
+                                {this.state.toDashboard && (<Navigate to="/" replace />)}
                                 Kembali
                             </span>
                         </span>
@@ -379,6 +515,18 @@ class ScreenReportClass extends React.Component<T_LocalData_W_DP, any> {
                     <br></br>
                 </div>
             </div>
+        )
+    }
+
+    render(): JSX.Element {
+        // Add the initial value.
+        return (
+            <>
+                {this.state.loadData ?
+                    <this.DailyLoading /> :
+                    <this.DailyDisplay />
+                }
+            </>
         )
     }
 }
