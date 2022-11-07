@@ -20,7 +20,7 @@ class DashboardClass extends React.Component<T_LocalData_W_DP, any> {
             reports: [],
             todoPending: [],
             todoPostponed: [],
-            password: null,
+            password: '',
             passwordBtn: 'Ganti',
             saving: {
                 password: false
